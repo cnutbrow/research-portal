@@ -1,0 +1,94 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id            String        @id @default(cuid())
+  email         String        @unique
+  password      String
+  name          String
+  role          Role
+  department    String?
+  bio           String?
+  createdAt     DateTime      @default(now())
+  opportunities Opportunity[] @relation("FacultyOpportunities")
+  applications  Application[] @relation("StudentApplications")
+}
+
+model Opportunity {
+  id                    String              @id @default(cuid())
+  title                 String
+  description           String
+  department            String
+  subject               String
+  payType               PayType
+  payAmount             Float?
+  remote                RemoteType
+  prerequisites         String?
+  hoursPerWeek          Int?
+  skills                String
+  positions             Int                 @default(1)
+  deadline              DateTime?
+  cvRequirement         DocRequirement      @default(OPTIONAL)
+  transcriptRequirement DocRequirement      @default(UNAVAILABLE)
+  isActive              Boolean             @default(true)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  faculty               User                @relation("FacultyOpportunities", fields: [facultyId], references: [id])
+  facultyId             String
+  applications          Application[]
+}
+
+model Application {
+  id                 String            @id @default(cuid())
+  coverLetter        String
+  resumeText         String?
+  resumeFileName     String?
+  transcriptText     String?
+  transcriptFileName String?
+  status             ApplicationStatus @default(PENDING)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  student            User              @relation("StudentApplications", fields: [studentId], references: [id])
+  studentId          String
+  opportunity        Opportunity       @relation(fields: [opportunityId], references: [id])
+  opportunityId      String
+
+  @@unique([studentId, opportunityId])
+}
+
+enum Role {
+  FACULTY
+  STUDENT
+}
+
+enum PayType {
+  HOURLY
+  STIPEND
+  UNPAID
+  CREDIT
+}
+
+enum RemoteType {
+  REMOTE
+  IN_PERSON
+  HYBRID
+}
+
+enum ApplicationStatus {
+  PENDING
+  REVIEWING
+  ACCEPTED
+  REJECTED
+}
+
+enum DocRequirement {
+  UNAVAILABLE
+  OPTIONAL
+  REQUIRED
+}

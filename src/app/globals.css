@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-cmu-red: #C41230;
+  --color-cmu-black: #000000;
+  --color-cmu-dark: #E0E0E0;
+  --color-cmu-gray: #6D6E71;
+  --font-sans: Helvetica, "Helvetica Neue", Arial, sans-serif;
+}
