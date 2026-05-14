@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@prisma/client";
 
+// This route is used to pre-provision accounts before a user's first SSO login.
+// Authentication is handled entirely via CMU SSO — no passwords are stored.
 export async function POST(req: NextRequest) {
-  const { email, password, name, role, department } = await req.json();
+  const { email, name, role, department } = await req.json();
 
-  if (!email || !password || !name || !role) {
+  if (!email || !name || !role) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
@@ -15,11 +16,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Email already registered" }, { status: 409 });
   }
 
-  const hashed = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
     data: {
       email,
-      password: hashed,
       name,
       role: role as Role,
       department: department || null,

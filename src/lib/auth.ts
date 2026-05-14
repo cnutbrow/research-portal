@@ -1,36 +1,34 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
+
+const DEV_ACCOUNTS = [
+  { email: "faculty@cmu.edu" },
+  { email: "student@andrew.cmu.edu" },
+];
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    CredentialsProvider({
-      name: "credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+    // CMU SSO (Shibboleth/SAML) — to be configured with CMU IT
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
-
-        if (!user) return null;
-
-        const valid = await bcrypt.compare(credentials.password, user.password);
-        if (!valid) return null;
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        };
-      },
-    }),
+    // Dev-only bypass — compiled out in production
+    ...(process.env.NODE_ENV !== "production"
+      ? [
+          CredentialsProvider({
+            id: "dev-bypass",
+            name: "Dev Bypass",
+            credentials: { email: { label: "Email", type: "email" } },
+            async authorize(credentials) {
+              if (!credentials?.email) return null;
+              const allowed = DEV_ACCOUNTS.find(a => a.email === credentials.email);
+              if (!allowed) return null;
+              const user = await prisma.user.findUnique({ where: { email: credentials.email } });
+              if (!user) return null;
+              return { id: user.id, email: user.email, name: user.name, role: user.role };
+            },
+          }),
+        ]
+      : []),
   ],
   callbacks: {
     async jwt({ token, user }) {

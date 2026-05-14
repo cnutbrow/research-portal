@@ -51,7 +51,7 @@ export function Navbar() {
               <div className="w-8 h-8 bg-white rounded-sm flex items-center justify-center shadow-sm">
                 <span className="text-cmu-red font-black text-sm leading-none">CMU</span>
               </div>
-              <span className="font-bold text-lg hidden sm:block tracking-tight">Research Portal</span>
+              <span className="font-bold text-lg hidden sm:block tracking-tight">Undergraduate Research Portal</span>
             </Link>
 
             <div className="hidden sm:flex items-center gap-6 text-sm">

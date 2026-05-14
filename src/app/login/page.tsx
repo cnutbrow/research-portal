@@ -5,9 +5,11 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
+const IS_DEV = process.env.NODE_ENV !== "production";
+
 const DEV_ACCOUNTS = [
-  { label: "Faculty — Dr. Jane Smith", email: "faculty@cmu.edu", password: "password123", role: "Faculty" },
-  { label: "Student — Alice Chen", email: "student@andrew.cmu.edu", password: "password123", role: "Student" },
+  { label: "Faculty — Dr. Jane Smith", email: "faculty@cmu.edu", role: "Faculty" },
+  { label: "Student — Alice Chen", email: "student@andrew.cmu.edu", role: "Student" },
 ];
 
 function LoginForm() {
@@ -19,12 +21,12 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [devOpen, setDevOpen] = useState(false);
 
-  async function devLogin(email: string, password: string) {
+  async function devLogin(email: string) {
     setLoading(true);
     setError("");
-    const res = await signIn("credentials", { email, password, redirect: false });
+    const res = await signIn("dev-bypass", { email, redirect: false });
     if (res?.error) {
-      setError("Dev login failed — have you run the seed script?");
+      setError("Dev login failed — has this account been seeded in Turso?");
       setLoading(false);
     } else {
       router.push(callbackUrl);
@@ -45,59 +47,62 @@ function LoginForm() {
           <p className="mt-1 text-gray-500">CMU Undergraduate Research Portal</p>
         </div>
 
-        {/* ── PRIMARY: CMU SSO ── */}
+        {/* ── CMU SSO ── */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
           <button
-            disabled
-            className="w-full flex items-center justify-center gap-3 bg-cmu-red text-white font-semibold py-3 rounded-lg opacity-60 cursor-not-allowed"
+            onClick={() => signIn("shibboleth", { callbackUrl })}
+            className="w-full flex items-center justify-center gap-3 bg-cmu-red text-white font-semibold py-3 rounded-lg hover:bg-red-800 transition-colors"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 2L3 7v6c0 5 4 9 9 10 5-1 9-5 9-10V7L12 2z" />
             </svg>
-            Sign in with CMU SSO
+            Sign in with CMU Andrew ID
           </button>
           <p className="text-center text-xs text-gray-400 mt-3">
-            Andrew ID single sign-on — coming soon
+            You will be redirected to CMU&apos;s single sign-on
           </p>
         </div>
 
-        {/* ── DEV BYPASS — remove before deploy ── */}
-        <div className="rounded-xl border-2 border-dashed border-amber-300 bg-amber-50 overflow-hidden">
-          <button
-            onClick={() => setDevOpen(o => !o)}
-            className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-amber-800 hover:bg-amber-100 transition-colors"
-          >
-            <span className="flex items-center gap-2">
-              <span className="text-base">🚧</span>
-              Dev bypass — remove before deploy
-            </span>
-            <span className="text-amber-500">{devOpen ? "▲" : "▼"}</span>
-          </button>
+        {/* ── DEV BYPASS — only rendered outside production ── */}
+        {IS_DEV && (
+          <div className="rounded-xl border-2 border-dashed border-amber-300 bg-amber-50 overflow-hidden">
+            <button
+              onClick={() => setDevOpen(o => !o)}
+              className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-amber-800 hover:bg-amber-100 transition-colors"
+            >
+              <span className="flex items-center gap-2">
+                <span className="text-base">🚧</span>
+                Dev bypass
+              </span>
+              <span className="text-amber-500">{devOpen ? "▲" : "▼"}</span>
+            </button>
 
-          {devOpen && (
-            <div className="px-4 pb-4 space-y-2 border-t border-amber-200">
-              <p className="text-xs text-amber-700 pt-3 mb-3">
-                One-click login with seeded test accounts. This panel will be removed when CMU SSO is wired up.
-              </p>
-              {DEV_ACCOUNTS.map(acct => (
-                <button
-                  key={acct.email}
-                  onClick={() => devLogin(acct.email, acct.password)}
-                  disabled={loading}
-                  className="w-full flex items-center justify-between bg-white border border-amber-200 rounded-lg px-3 py-2.5 text-sm hover:bg-amber-50 transition-colors disabled:opacity-60 text-left"
-                >
-                  <span>
-                    <span className="font-semibold text-gray-800">{acct.label}</span>
-                    <span className="text-gray-400 ml-2">{acct.email}</span>
-                  </span>
-                  <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-medium">
-                    {acct.role}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+            {devOpen && (
+              <div className="px-4 pb-4 space-y-2 border-t border-amber-200">
+                <p className="text-xs text-amber-700 pt-3 mb-3">
+                  One-click login with seeded accounts. Not shown in production.
+                </p>
+                {DEV_ACCOUNTS.map(acct => (
+                  <button
+                    key={acct.email}
+                    onClick={() => devLogin(acct.email)}
+                    disabled={loading}
+                    className="w-full flex items-center justify-between bg-white border border-amber-200 rounded-lg px-3 py-2.5 text-sm hover:bg-amber-50 transition-colors disabled:opacity-60 text-left"
+                  >
+                    <span>
+                      <span className="font-semibold text-gray-800">{acct.label}</span>
+                      <span className="text-gray-400 ml-2">{acct.email}</span>
+                    </span>
+                    <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-medium">
+                      {acct.role}
+                    </span>
+                  </button>
+                ))}
+                {error && <p className="text-xs text-red-600 pt-1">{error}</p>}
+              </div>
+            )}
+          </div>
+        )}
 
       </div>
     </div>

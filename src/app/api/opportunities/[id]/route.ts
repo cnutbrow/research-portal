@@ -29,7 +29,33 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (opportunity.facultyId !== user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();
-  const updated = await prisma.opportunity.update({ where: { id }, data: body });
+  const {
+    title, description, department, subject,
+    payType, payAmount, remote,
+    prerequisites, hoursPerWeek,
+    skills, positions, deadline,
+    cvRequirement, transcriptRequirement,
+    isActive,
+  } = body;
+
+  const data: Record<string, unknown> = {};
+  if (title              !== undefined) data.title              = title;
+  if (description        !== undefined) data.description        = description;
+  if (department         !== undefined) data.department         = department;
+  if (subject            !== undefined) data.subject            = subject;
+  if (payType            !== undefined) data.payType            = payType;
+  if (payAmount          !== undefined) data.payAmount          = payAmount ? parseFloat(payAmount) : null;
+  if (remote             !== undefined) data.remote             = remote;
+  if (prerequisites      !== undefined) data.prerequisites      = prerequisites || null;
+  if (hoursPerWeek       !== undefined) data.hoursPerWeek       = hoursPerWeek ? parseInt(hoursPerWeek) : null;
+  if (skills             !== undefined) data.skills             = skills;
+  if (positions          !== undefined) data.positions          = positions ? parseInt(positions) : 1;
+  if (deadline           !== undefined) data.deadline           = deadline ? new Date(deadline) : null;
+  if (cvRequirement      !== undefined) data.cvRequirement      = cvRequirement;
+  if (transcriptRequirement !== undefined) data.transcriptRequirement = transcriptRequirement;
+  if (isActive           !== undefined) data.isActive           = isActive;
+
+  const updated = await prisma.opportunity.update({ where: { id }, data });
   return NextResponse.json(updated);
 }
 

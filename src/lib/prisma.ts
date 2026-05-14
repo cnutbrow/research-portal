@@ -6,8 +6,9 @@ import path from "path";
 type PrismaClientWithAdapter = new (options: { adapter: any }) => PrismaClient;
 
 function createPrismaClient() {
-  const dbPath = path.join(process.cwd(), "dev.db");
-  const adapter = new PrismaLibSql({ url: `file:${dbPath}` });
+  const url = process.env.DATABASE_URL ?? `file:${path.join(process.cwd(), "dev.db")}`;
+  const authToken = process.env.DATABASE_AUTH_TOKEN;
+  const adapter = new PrismaLibSql({ url, ...(authToken ? { authToken } : {}) });
   return new (PrismaClient as unknown as PrismaClientWithAdapter)({ adapter });
 }
 
