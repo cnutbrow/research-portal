@@ -2,11 +2,18 @@
 
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 export function Navbar() {
   const { data: session } = useSession();
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function handleSignOut() {
+    await signOut({ redirect: false });
+    router.push("/");
+    router.refresh();
+  }
 
   const isActive = (path: string) =>
     pathname === path || pathname.startsWith(path + "/")
@@ -83,7 +90,7 @@ export function Navbar() {
                   </span>
                 </span>
                 <button
-                  onClick={() => signOut({ callbackUrl: "/" })}
+                  onClick={handleSignOut}
                   className="bg-white/15 hover:bg-white/25 text-white font-semibold px-3 py-1.5 rounded-lg transition-colors border border-white/20"
                 >
                   Sign out
