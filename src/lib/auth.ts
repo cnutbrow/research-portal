@@ -9,24 +9,19 @@ const DEV_ACCOUNTS = [
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    // Dev-only bypass — compiled out in production
-    ...(process.env.NODE_ENV !== "production"
-      ? [
-          CredentialsProvider({
-            id: "dev-bypass",
-            name: "Dev Bypass",
-            credentials: { email: { label: "Email", type: "email" } },
-            async authorize(credentials) {
-              if (!credentials?.email) return null;
-              const allowed = DEV_ACCOUNTS.find(a => a.email === credentials.email);
-              if (!allowed) return null;
-              const user = await prisma.user.findUnique({ where: { email: credentials.email } });
-              if (!user) return null;
-              return { id: user.id, email: user.email, name: user.name, role: user.role };
-            },
-          }),
-        ]
-      : []),
+    CredentialsProvider({
+      id: "dev-bypass",
+      name: "Dev Bypass",
+      credentials: { email: { label: "Email", type: "email" } },
+      async authorize(credentials) {
+        if (!credentials?.email) return null;
+        const allowed = DEV_ACCOUNTS.find(a => a.email === credentials.email);
+        if (!allowed) return null;
+        const user = await prisma.user.findUnique({ where: { email: credentials.email } });
+        if (!user) return null;
+        return { id: user.id, email: user.email, name: user.name, role: user.role };
+      },
+    }),
   ],
   callbacks: {
     async jwt({ token, user }) {
