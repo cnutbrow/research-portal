@@ -70,6 +70,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   if (!opportunity) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (opportunity.facultyId !== user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+  await prisma.application.deleteMany({ where: { opportunityId: id } });
   await prisma.opportunity.delete({ where: { id } });
   return NextResponse.json({ success: true });
 }
