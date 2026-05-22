@@ -5,7 +5,6 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
-const IS_DEV = process.env.NODE_ENV !== "production";
 
 const DEV_ACCOUNTS = [
   { label: "Faculty — Dr. Jane Smith", email: "faculty@cmu.edu", role: "Faculty" },
@@ -50,8 +49,8 @@ function LoginForm() {
         {/* ── CMU SSO ── */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
           <button
-            onClick={() => signIn("shibboleth", { callbackUrl })}
-            className="w-full flex items-center justify-center gap-3 bg-cmu-red text-white font-semibold py-3 rounded-lg hover:bg-red-800 transition-colors"
+            disabled
+            className="w-full flex items-center justify-center gap-3 bg-gray-100 text-gray-400 font-semibold py-3 rounded-lg cursor-not-allowed"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 2L3 7v6c0 5 4 9 9 10 5-1 9-5 9-10V7L12 2z" />
@@ -59,13 +58,12 @@ function LoginForm() {
             Sign in with CMU Andrew ID
           </button>
           <p className="text-center text-xs text-gray-400 mt-3">
-            You will be redirected to CMU&apos;s single sign-on
+            CMU SSO coming soon
           </p>
         </div>
 
-        {/* ── DEV BYPASS — only rendered outside production ── */}
-        {IS_DEV && (
-          <div className="rounded-xl border-2 border-dashed border-amber-300 bg-amber-50 overflow-hidden">
+        {/* ── DEV BYPASS ── */}
+        <div className="rounded-xl border-2 border-dashed border-amber-300 bg-amber-50 overflow-hidden">
             <button
               onClick={() => setDevOpen(o => !o)}
               className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-amber-800 hover:bg-amber-100 transition-colors"
@@ -80,7 +78,7 @@ function LoginForm() {
             {devOpen && (
               <div className="px-4 pb-4 space-y-2 border-t border-amber-200">
                 <p className="text-xs text-amber-700 pt-3 mb-3">
-                  One-click login with seeded accounts. Not shown in production.
+                  One-click login with seeded accounts.
                 </p>
                 {DEV_ACCOUNTS.map(acct => (
                   <button
@@ -102,7 +100,6 @@ function LoginForm() {
               </div>
             )}
           </div>
-        )}
 
       </div>
     </div>

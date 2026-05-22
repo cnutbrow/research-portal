@@ -9,8 +9,6 @@ const DEV_ACCOUNTS = [
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    // CMU SSO (Shibboleth/SAML) — to be configured with CMU IT
-
     // Dev-only bypass — compiled out in production
     ...(process.env.NODE_ENV !== "production"
       ? [
